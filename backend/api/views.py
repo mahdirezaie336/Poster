@@ -1,3 +1,5 @@
+from rest_framework import status
+from rest_framework.generics import get_object_or_404
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from posts.models import Post, PostImage
@@ -19,4 +21,14 @@ def api_post_list(request):
     """
     posts = Post.objects.all()
     serializer = PostSerializer(posts, many=True)
+    return Response(serializer.data)
+
+
+@api_view(['GET'])
+def api_post_detail(request, pk):
+    """
+    This is the home page for the API
+    """
+    post = get_object_or_404(Post, pk=pk)
+    serializer = PostSerializer(post, many=False)
     return Response(serializer.data)
