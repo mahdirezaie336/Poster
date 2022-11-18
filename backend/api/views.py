@@ -19,6 +19,15 @@ def api_home(request):
 class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
 
+    def retrieve(self, request, *args, **kwargs):
+        # Get post object from request
+        post = get_object_or_404(Post, id=self.kwargs['pk'])
+        if post.state == 'R':
+            return Response('Your post was not approved!', status=status.HTTP_200_OK)
+        if post.state == 'P':
+            return Response('Your post is pending!', status=status.HTTP_200_OK)
+        return super().retrieve(request, *args, **kwargs)
+
     def get_queryset(self):
         # Get by id
         if self.kwargs.get('pk'):
