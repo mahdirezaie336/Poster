@@ -11,7 +11,15 @@ https://docs.djangoproject.com/en/4.1/ref/settings/
 """
 
 from pathlib import Path
-from .secret import *
+from .secret import (AWS_S3_SECRET_ACCESS_KEY,
+                     AWS_S3_REGION_NAME,
+                     AWS_S3_ENDPOINT_URL,
+                     AWS_S3_ACCESS_KEY_ID,
+                     AWS_STORAGE_BUCKET_NAME,
+                     DB_NAME, DB_USER,
+                     DB_PASSWORD,
+                     DB_HOST,
+                     DB_PORT)
 import os
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
