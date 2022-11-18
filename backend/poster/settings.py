@@ -42,6 +42,7 @@ INSTALLED_APPS = [
     'rest_framework',
     'api',
     'posts',
+    'storages',
 ]
 
 MIDDLEWARE = [
@@ -124,8 +125,30 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.1/howto/static-files/
 
 STATIC_URL = 'static/'
-MEDIA_URL = '/media/'
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+APP_DOMAIN = "http://localhost:8000"
+FILE_UPLOAD_STORAGE = "s3"
+
+if FILE_UPLOAD_STORAGE == "local":
+    MEDIA_ROOT_NAME = "/media/"
+    MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+    MEDIA_URL = f"/{MEDIA_ROOT_NAME}/"
+
+if FILE_UPLOAD_STORAGE == "s3":
+    # https://django-storages.readthedocs.io/en/latest/backends/amazon-S3.html
+    DEFAULT_FILE_STORAGE = 'storages.backends.s3boto3.S3Boto3Storage'
+
+    AWS_S3_ACCESS_KEY_ID = AWS_S3_ACCESS_KEY_ID
+    AWS_S3_SECRET_ACCESS_KEY = AWS_S3_SECRET_ACCESS_KEY
+    AWS_STORAGE_BUCKET_NAME = AWS_STORAGE_BUCKET_NAME
+    AWS_S3_REGION_NAME = AWS_S3_REGION_NAME
+    AWS_S3_SIGNATURE_VERSION = "s3v4"
+
+    # https://docs.aws.amazon.com/AmazonS3/latest/userguide/acl-overview.html#canned-acl
+    AWS_DEFAULT_ACL = "private"
+
+    AWS_PRESIGNED_EXPIRY = 10  # seconds
+    AWS_S3_ENDPOINT_URL = AWS_S3_ENDPOINT_URL
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.1/ref/settings/#default-auto-field

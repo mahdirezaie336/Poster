@@ -7,7 +7,7 @@ def path_and_rename(instance, filename):
     """
     This function is used in the image field to rename the image to a random name.
     """
-    upload_to = 'store/images/'
+    upload_to = ''  # Directory to upload to
     ext = filename.split('.')[-1]
     # get filename
     if instance.pk:

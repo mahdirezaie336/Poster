@@ -4,3 +4,5 @@ pyyaml
 requests
 django-cors-headers
 pillow
+django-storages
+boto3

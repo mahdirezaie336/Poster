@@ -4,6 +4,7 @@ from rest_framework.response import Response
 from rest_framework.decorators import api_view
 from posts.models import Post
 from posts.serializers import PostSerializer
+from django.core.files.storage import default_storage
 
 
 @api_view(['GET'])
@@ -42,28 +43,6 @@ def api_post_detail(request, pk):
     elif request.method == 'DELETE':
         post.delete()
         return Response(status=status.HTTP_204_NO_CONTENT)
-
-
-@api_view(['GET', 'POST'])
-def api_post_image_list(request, pk):
-    """
-    This is the home page for the API
-    """
-    post = get_object_or_404(Post, pk=pk)
-    if request.method == 'GET':
-        images = PostImage.objects.filter(post=post)
-        serializer = PostImageSerializer(images, many=True)
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        serializer = PostImageSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-# class PostImageViewSet(viewsets.ModelViewSet):
-#     queryset = PostImage.objects.all()
-#     serializer_class = PostImageSerializer
 
 
 class PostViewSet(viewsets.ModelViewSet):
