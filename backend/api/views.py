@@ -15,36 +15,6 @@ def api_home(request):
     return Response("Welcome to the API home page")
 
 
-@api_view(['GET', 'POST'])
-def api_post_list(request):
-    """
-    This is the home page for the API
-    """
-    if request.method == 'GET':
-        posts = Post.objects.all()
-        serializer = PostSerializer(posts, many=True)
-        return Response(serializer.data)
-    elif request.method == 'POST':
-        serializer = PostSerializer(data=request.data)
-        serializer.is_valid(raise_exception=True)
-        serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
-
-
-@api_view(['GET', 'DELETE'])
-def api_post_detail(request, pk):
-    """
-    This is the home page for the API
-    """
-    post = get_object_or_404(Post, pk=pk)
-    if request.method == 'GET':
-        serializer = PostSerializer(post)
-        return Response(serializer.data)
-    elif request.method == 'DELETE':
-        post.delete()
-        return Response(status=status.HTTP_204_NO_CONTENT)
-
-
 class PostViewSet(viewsets.ModelViewSet):
     serializer_class = PostSerializer
 
