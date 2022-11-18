@@ -1,4 +1,5 @@
-import pika, json
+import json
+import pika
 
 from .secret import AMQP_URL
 
@@ -15,14 +16,13 @@ class RabbitMQ:
         self.channel.basic_publish(exchange='', routing_key='hello', body=json.dumps(message).encode())
         print(" [x] Sent %r" % message)
 
-    def receive(self):
-        def callback(ch, method, properties, body):
-            print(" [x] Received %r" % body)
-            return body
+    def start_receiving(self, callback=None):
+        if callback is None:
+            def callback(ch, method, properties, body):
+                print(" [x] Received %r" % body)
 
         self.channel.basic_consume(queue=self.queue_name, on_message_callback=callback, auto_ack=True)
 
-        print(' [*] Waiting for messages. To exit press CTRL+C')
         try:
             self.channel.start_consuming()
         except KeyboardInterrupt:
