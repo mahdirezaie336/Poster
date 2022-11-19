@@ -16,14 +16,27 @@ mydb = mysql.connect(
     password=DB_PASSWORD,
     database=DB_NAME
 )
-my_cursor = mydb.cursor()
+
+
+def send_email(email, category, is_vehicle):
+    body = f"Your post was {'' if is_vehicle else 'not'} approved! {'Category: ' + category if is_vehicle else ''}"
+    requests.post(
+        f"https://api.mailgun.net/v3/{MAIL_GUN_DOMAIN}/messages",
+        auth=("api", MAIL_GUN_API_KEY),
+        data={"from": f"Excited User <mailgun@{MAIL_GUN_DOMAIN}>",
+              "to": [email],
+              "subject": "Your post on the site",
+              "text": body})
 
 
 def callback(ch, method, properties, body):
+    print("Received message # %r" % body)
+
     # get data from message
     data = json.loads(body)
     image_url = data['image']
     post_id = data['id']
+    email = data['email']
 
     # Download the image
     image_server_response = requests.get(image_url)
@@ -62,17 +75,24 @@ def callback(ch, method, properties, body):
     if is_vehicle:
         print('Vehicle detected')
         # Query to mysql to change post status to 'APPROVED'
-        query = f"UPDATE posts_post SET status = 'A' WHERE id = {post_id}"
+        query = f"UPDATE posts_post SET state = 'A' WHERE id = {post_id};"\
+                "UPDATE posts_post SET category = 'vehicle' WHERE id = {post_id}"
     else:
         print('No vehicle detected')
         # Query to mysql to change post status to 'REJECTED'
-        query = f"UPDATE posts_post SET status = 'R' WHERE id = {post_id}"
+        query = f"UPDATE posts_post SET state = 'R' WHERE id = {post_id}"
 
-    my_cursor.execute(query)
-    mydb.commit()
-    print('Post status updated!')
+    my_cursor = mydb.cursor()
+    try:
+        my_cursor.execute(query)
+        mydb.commit()
+        print('Post status updated!')
+    finally:
+        my_cursor.close()
 
     # Send email to user
+    send_email(email, 'vehicle', is_vehicle)
+    print('Email sent to user', email)
 
 
 def main():

@@ -30,6 +30,7 @@ class PostViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         # Get by id
+        print(self.kwargs.get('pk'))
         if self.kwargs.get('pk'):
             return Post.objects.filter(id=self.kwargs['pk'])
         # Get all
