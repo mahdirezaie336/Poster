@@ -10,12 +10,16 @@ import mysql.connector as mysql
 queue = RabbitMQ()
 TAGGER_ENDPOINT = 'https://api.imagga.com/v2/tags'
 
+print("Creating database objects....")
 mydb = mysql.connect(
     host=DB_HOST,
+    port=DB_PORT,
     user=DB_USER,
     password=DB_PASSWORD,
     database=DB_NAME
 )
+my_cursor = mydb.cursor()
+print("Connected to the database.")
 
 
 def send_email(email, category, is_vehicle):
@@ -75,23 +79,19 @@ def callback(ch, method, properties, body):
     if is_vehicle:
         print('Vehicle detected')
         # Query to mysql to change post status to 'APPROVED'
-        query = f"UPDATE posts_post SET state = 'A' WHERE id = {post_id};"\
-                "UPDATE posts_post SET category = 'vehicle' WHERE id = {post_id}"
+        query = f"UPDATE posts_post SET state = 'A', category = 'vehicle' WHERE id = {post_id}"
     else:
         print('No vehicle detected')
         # Query to mysql to change post status to 'REJECTED'
         query = f"UPDATE posts_post SET state = 'R' WHERE id = {post_id}"
 
-    my_cursor = mydb.cursor()
-    try:
-        my_cursor.execute(query)
-        mydb.commit()
-        print('Post status updated!')
-    finally:
-        my_cursor.close()
+    # Update post state and category
+    my_cursor.execute(query)
+    mydb.commit()
+    print('Post status updated!')
 
     # Send email to user
-    send_email(email, 'vehicle', is_vehicle)
+    # send_email(email, 'vehicle', is_vehicle)
     print('Email sent to user', email)
 
 
