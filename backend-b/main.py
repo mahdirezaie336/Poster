@@ -33,38 +33,7 @@ def send_email(email, category, is_vehicle):
               "text": body})
 
 
-def callback(ch, method, properties, body):
-    print("Received message # %r" % body)
-
-    # get data from message
-    data = json.loads(body)
-    image_url = data['image']
-    post_id = data['id']
-    email = data['email']
-
-    # Download the image
-    image_server_response = requests.get(image_url)
-
-    # If there is problem loading image url
-    if image_server_response.status_code != 200:
-        print('Error getting image from url')
-        return
-
-    # Get image data and convert to base 64
-    image = image_server_response.content
-    image_base64 = base64.b64encode(image).decode('utf-8')
-
-    # Post image to the API
-    headers = {
-        'Authorization': API_AUTH,
-    }
-    tag_response = requests.post(TAGGER_ENDPOINT, data={'image_base64': image_base64}, headers=headers)
-
-    # If there is problem with the API
-    if tag_response.status_code != 200:
-        print('Error getting tags from API')
-        return
-
+def check_vehicle(tag_response):
     # Get the tags
     tag_response_json = tag_response.json()['result']['tags']
     df = pd.DataFrame(tag_response_json)
@@ -74,8 +43,10 @@ def callback(ch, method, properties, body):
     df = df[df.confidence > 50]
 
     # Find tags containing 'vehicle'
-    is_vehicle = not df[df.tag.str.lower().str.contains('vehicle')].empty
+    return not df[df.tag.str.lower().str.contains('vehicle')].empty
 
+
+def update_vehicle_status(post_id, is_vehicle):
     if is_vehicle:
         print('Vehicle detected')
         # Query to mysql to change post status to 'APPROVED'
@@ -88,10 +59,63 @@ def callback(ch, method, properties, body):
     # Update post state and category
     my_cursor.execute(query)
     mydb.commit()
+
+
+def get_image_base64(image_url):
+    image_server_response = requests.get(image_url)
+
+    # If there is problem loading image url
+    if image_server_response.status_code != 200:
+        print('Error getting image from url')
+        return
+
+    # Get image data and convert to base 64
+    image = image_server_response.content
+    return base64.b64encode(image).decode('utf-8')
+
+
+def send_image_to_tagger(image_base64):
+    headers = {
+        'Authorization': API_AUTH,
+    }
+    tag_response = requests.post(TAGGER_ENDPOINT, data={'image_base64': image_base64}, headers=headers)
+
+    # If there is problem with the API
+    if tag_response.status_code != 200:
+        print('Error getting tags from API')
+        return
+
+    return tag_response
+
+
+def callback(ch, method, properties, body):
+    print("Received message # %r" % body)
+
+    # get data from message
+    data = json.loads(body)
+    image_url = data['image']
+    post_id = data['id']
+    email = data['email']
+
+    # Download the image
+    image_base64 = get_image_base64(image_url)
+    if image_base64 is None:
+        return
+
+    # Post image to the API
+    tag_response = send_image_to_tagger(image_base64)
+    if tag_response is None:
+        return
+
+    # Check if it is vehicle
+    is_vehicle = check_vehicle(tag_response)
+
+    # Update post status
+    update_vehicle_status(post_id, is_vehicle)
     print('Post status updated!')
 
     # Send email to user
-    # send_email(email, 'vehicle', is_vehicle)
+    send_email(email, 'vehicle', is_vehicle)
     print('Email sent to user', email)
 
 
