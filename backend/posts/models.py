@@ -1,6 +1,9 @@
 from django.db import models
 import uuid
 import os
+from django.db import connection
+from django.db import connections
+from django.db.models.expressions import RawSQL
 
 
 def path_and_rename(instance, filename):

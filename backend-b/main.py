@@ -1,5 +1,5 @@
 from rabbitmq import RabbitMQ
-from secret import *
+from secret import DB_NAME, DB_USER, DB_PASSWORD, DB_HOST, DB_PORT, MAIL_GUN_API_KEY, MAIL_GUN_DOMAIN, API_AUTH
 import json
 import requests
 import base64

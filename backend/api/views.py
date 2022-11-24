@@ -5,7 +5,6 @@ from rest_framework.decorators import api_view
 from posts.models import Post
 from posts.serializers import PostSerializer
 from .rabbitmq import RabbitMQ
-from django.core.files.storage import default_storage
 
 
 @api_view(['GET'])
@@ -13,7 +12,7 @@ def api_home(request):
     """
     This is the home page for the API
     """
-    return Response("Welcome to the API home page")
+    return Response("Welcome to the API")
 
 
 class PostViewSet(viewsets.ModelViewSet):
@@ -52,4 +51,3 @@ class PostViewSet(viewsets.ModelViewSet):
         rabbitmq.publish(queue_data)
 
         return Response(serializer.data, status=status.HTTP_201_CREATED)
-
